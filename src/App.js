@@ -1,24 +1,22 @@
-import logo from './logo.svg';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import './App.css';
 
+
+import Main from './pages/Main';
+import List from './pages/List';
+import Edit from './pages/Edit';
+
 function App() {
+	const navi = useNavigate();
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+    	<h1 align="center" style={{cursor : "pointer"}} onClick={()=>{navi("/")}}> Todo List </h1>
+    	<Routes>
+			<Route path="/" element={<Main />}/>
+			<Route path="/list" element={<List />}/>
+			<Route path="/list/edit" element={<Edit />}/>
+    	</Routes>
+    </>
   );
 }
 
