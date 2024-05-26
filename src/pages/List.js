@@ -1,19 +1,26 @@
 //List.js
 import { useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 
+import App from "../App";
+
 function List() {
-	const navi = useNavigate();
-	const [elem_list, setElem] = useState([
-						{do : "Clean", com : false}, 
-						{do : "Wash", com : false}, 
-						{do : "Playing Game", com : false}, 
-						{do : "Homework", com : false}, 
-						{do : "Cooking", com : false}]);
-	const elemInput = useRef();
-	const elemDo = useRef([]);
-	const [disabled, setdis] = useState(true);
+	const [elem_list, setElem] = useState([]);
+	const [EditMode, setEdit] = useState(0);
+	
+	useEffect(()=>{
+		if (EditMode == 0) {
+			axios.get("http://localhost:3001/getlist")
+			.then((res)=>{
+				setElem(res.data);
+			}).catch((err)=>{
+				console.log(err);
+			});
+		}
+	}, [elem_list]);
+	
+	const elemEdit = useRef([]);
 	const onChange = (e) => {
 		const { value, name } = e.target;
 		const tempElem = [...elem_list];
@@ -21,32 +28,77 @@ function List() {
 	    setElem(tempElem);
 	};
 	
-	const done = (idx) => {
-		const tempElem = [...elem_list];
-		tempElem[idx].com = !elem_list[idx].com;
-		setElem(tempElem);
-	}
+	const [disabled, setdis] = useState(true);
+	const done = (idx, elemId, complete) => {
+		axios({
+			method: 'post',
+			url : "http://localhost:3001/getlist/done",
+			data: {
+				id : elemId,
+				enabled : !complete
+			}
+		}).then((res)=>{
+			alert(res.data);
+		})
+		//const tempElem = [...elem_list];
+		//tempElem[idx].com = !elem_list[idx].com;
+		//setElem(tempElem);
+	};
 	
+	const elemInput = useRef();
 	const Add = () => {
-		alert("Success");
+		axios({
+			method: 'post',
+			url : "http://localhost:3001/getlist/insert",
+			data: {
+				do : elemInput.current.value,
+				enabled : false
+			}
+		}).then((res)=>{
+			alert(res.data);
+		})
 		setElem(
-			[...elem_list, {do : elemInput.current.value, com : false}]
+			[...elem_list, {do : elemInput.current.value, enabled : false}]
 		);
 		elemInput.current.value ="";
 	}
 	
-	const Edit = (idx) => {
+	const Edit = (idx, elem_id) => {
 		setdis(!disabled);
+		if (EditMode == 0){
+			setEdit(1);
+		} else {
+			axios({
+				method: 'post',
+				url : "http://localhost:3001/getlist/edit",
+				data: {
+					id : elem_id,
+					do : elemEdit.current[idx].value
+				}
+			}).then((res)=>{
+				alert(res.data);
+			}).catch((err)=>{
+				console.log(err);
+			})
+			setEdit(0);
+		}
 	}
 	
 	const Delete = (idx) => {
-		alert("Success");
+		axios({
+			method: 'post',
+			url : "http://localhost:3001/getlist/delete",
+			data: {
+				id : idx
+			}
+		}).then((res)=>{
+			alert(res.data);
+		})
 		const elem_list_later = [...elem_list];
 		setElem(
 			elem_list.splice(0, idx).concat( elem_list_later.splice(idx+1, elem_list_later.length) )
 		);
 	}
-	
 	
 	return(
 		<div align="center">
@@ -64,12 +116,12 @@ function List() {
 						<tr>
 							<td align="center">{idx+1}</td>
 							<td>
-								<input name={idx} onChange={onChange} value={elem.do} hidden={disabled}/>
-								<a style={elem.com ? {textDecoration : "line-through"} : {cursor : ""}} hidden={!disabled}>{elem.do}</a>
+								<input ref={el=>elemEdit.current[idx]=el} name={""+idx} onChange={onChange} value={elem.do} hidden={disabled}/>
+								<a style={elem.enabled ? {textDecoration : "line-through"} : {textDecoration : ""}} hidden={!disabled}>{elem.do}</a>
 							</td>
-							<td align="center"><button onClick={()=>done(idx)}>{elem.com ? "Complete":"No-Compelete" }</button></td>
-							<td align="center"><button onClick={()=>Edit(idx)}>Edit</button></td>
-							<td align="center"><button onClick={()=>Delete(idx)}>Delete</button></td>
+							<td align="center"><button onClick={()=>done(idx, elem.id, elem.enabled)}>{elem.enabled ? "Complete":"No-Compelete" }</button></td>
+							<td align="center"><button onClick={()=>Edit(idx, elem.id)}>Edit</button></td>
+							<td align="center"><button onClick={()=>Delete(elem.id)}>Delete</button></td>
 						</tr>
 					))
 				}
