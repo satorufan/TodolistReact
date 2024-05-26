@@ -34,7 +34,7 @@ app.get("/getlist", (req, res)=>{
 	const sql = "select * from todo";
 	db.query(sql, (error, rows, fields)=>{
 		if(error) {
-			res.send(error + "실패");
+			res.send(error);
 		} else {
 			res.send(rows);
 		}
@@ -49,7 +49,7 @@ app.post("/getlist/insert", (req, res)=>{
 			res.send(error);
 		} else {
 			console.log("성공");
-			res.send("업로드하였습니다.");
+			res.send("추가하였습니다.");
 		}
 	});
 });
@@ -62,7 +62,7 @@ app.post("/getlist/edit", (req, res)=>{
 			res.send(error);
 		} else {
 			console.log("성공");
-			res.send("수정하였습니다.");
+			res.send();
 		}
 	});
 });
@@ -73,7 +73,7 @@ app.post("/getlist/done", (req, res)=>{
 		if(error) {
 			console.log(error);
 		} else {
-			console.log("성공");
+			res.send();
 		}
 	});
 });
